@@ -16,6 +16,11 @@ func main() {
 	(&cli.App{
 		Name:  "http honeypot",
 		Usage: "http server working as honeypot",
+		Flags: []cli.Flag{
+			&cli.StringFlag{
+				Name: "conf",
+			},
+		},
 		Commands: []*cli.Command{
 			{
 				Name:    "serve",
