@@ -1,15 +1,9 @@
 package httphoneypot
 
 type Request struct {
-	Method string
-	URL    string
-	Proto  string // "HTTP/1.0"
-	Header map[string][]string
-	Body   string
-}
-
-type StartLine struct {
-	Method  string
-	URL     string
-	Version string
+	Method string              `json:"method"`
+	URL    string              `json:"url"`
+	Proto  string              `json:"version"`
+	Header map[string][]string `json:"headers"`
+	Body   string              `json:"body"`
 }
