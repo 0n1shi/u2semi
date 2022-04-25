@@ -47,7 +47,12 @@ func serve(c *cli.Context) error {
 	if err != nil {
 		return errors.WithStack(err)
 	}
-	if err := yaml.Unmarshal(content, conf); err != nil {
+	if err := yaml.Unmarshal(content, &conf); err != nil {
+		return errors.WithStack(err)
+	}
+
+	requestRepo, err := hh.NewMySQLRequestRepository(&conf.MySQL)
+	if err != nil {
 		return errors.WithStack(err)
 	}
 
@@ -73,6 +78,10 @@ func serve(c *cli.Context) error {
 		body, _ := ioutil.ReadAll(r.Body)
 		fmt.Printf("\n%s\n", string(body))
 		req.Body = string(body)
+
+		if err := requestRepo.Create(&req); err != nil {
+			log.Println(err)
+		}
 	})
 
 	http.ListenAndServe(":8080", nil)
