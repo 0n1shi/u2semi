@@ -82,8 +82,14 @@ func serve(c *cli.Context) error {
 		if err := requestRepo.Create(&req); err != nil {
 			log.Println(err)
 		}
+
+		w.Header().Set("Server", "Apache/2.4.2 (Unix) PHP/4.2.2")
+		w.WriteHeader(200)
+		w.Write([]byte(`{"hello": "world"}`))
 	})
 
-	http.ListenAndServe(":8080", nil)
+	if err := http.ListenAndServe(":8080", nil); err != nil {
+		return errors.WithStack(err)
+	}
 	return nil
 }
