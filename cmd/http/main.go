@@ -35,7 +35,6 @@ func main() {
 			},
 		},
 	}).Run(os.Args)
-
 }
 
 func serve(c *cli.Context) error {
@@ -57,6 +56,8 @@ func serve(c *cli.Context) error {
 	if err != nil {
 		return errors.WithStack(err)
 	}
+
+	log.Printf("config: %+v\n", conf.Web)
 
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		log.Println("received a http request")
@@ -85,9 +86,11 @@ func serve(c *cli.Context) error {
 			log.Println(err)
 		}
 
-		w.Header().Set("Server", "Apache/2.4.2 (Unix) PHP/4.2.2")
+		for _, h := range conf.Web.Headers {
+			w.Header().Set(h.Key, h.Value)
+		}
 		w.WriteHeader(200)
-		w.Write([]byte(`{"hello": "world"}`))
+		w.Write([]byte(`{"hello": "world"}`)) // TODO
 	})
 
 	log.Println("starting server ...")
