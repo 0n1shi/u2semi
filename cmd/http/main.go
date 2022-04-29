@@ -42,6 +42,7 @@ func serve(c *cli.Context) error {
 	log.SetFlags(log.Llongfile | log.Ldate | log.Ltime)
 	log.SetPrefix("[http honeypot]")
 
+	log.Println("loading config ...")
 	var conf hh.Config
 	content, err := os.ReadFile(c.String("config"))
 	if err != nil {
@@ -51,6 +52,7 @@ func serve(c *cli.Context) error {
 		return errors.WithStack(err)
 	}
 
+	log.Println("setting up database ...")
 	requestRepo, err := hh.NewMySQLRequestRepository(&conf.MySQL)
 	if err != nil {
 		return errors.WithStack(err)
@@ -88,6 +90,7 @@ func serve(c *cli.Context) error {
 		w.Write([]byte(`{"hello": "world"}`))
 	})
 
+	log.Println("starting server ...")
 	if err := http.ListenAndServe(":8080", nil); err != nil {
 		return errors.WithStack(err)
 	}
