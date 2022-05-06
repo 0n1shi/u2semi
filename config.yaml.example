@@ -4,6 +4,7 @@ mysql:
   hostname: 127.0.0.1
   db: honeypot
 web:
+  port: 8080
   headers:
   - key: Server
     value: Apache/2.4.2 (Unix) PHP/4.2.2

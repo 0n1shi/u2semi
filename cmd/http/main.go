@@ -65,8 +65,6 @@ func runServer(c *cli.Context) error {
 		return errors.WithStack(err)
 	}
 
-	log.Printf("config: %+v\n", conf.Web)
-
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		log.Println("received a http request")
 		req := hh.Request{}
@@ -101,8 +99,8 @@ func runServer(c *cli.Context) error {
 		w.Write([]byte(`{"hello": "world"}`)) // TODO
 	})
 
-	log.Println("starting server ...")
-	if err := http.ListenAndServe(":8080", nil); err != nil {
+	log.Printf("starting server ... :%d\n", conf.Web.Port)
+	if err := http.ListenAndServe(fmt.Sprintf(":%d", conf.Web.Port), nil); err != nil {
 		return errors.WithStack(err)
 	}
 	return nil

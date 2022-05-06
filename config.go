@@ -13,6 +13,7 @@ type MySQLConfig struct {
 }
 
 type WebConfig struct {
+	Port    int       `yaml:"port"`
 	Headers []*Header `yaml:"headers"`
 }
 

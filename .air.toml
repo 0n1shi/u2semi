@@ -3,7 +3,7 @@ testdata_dir = "testdata"
 tmp_dir = "tmp"
 
 [build]
-  bin = "./tmp/main serve --conf ./config.yaml"
+  bin = "./tmp/main server --conf ./config.yaml"
   cmd = "go build -o ./tmp/main cmd/http/main.go"
   delay = 1000
   exclude_dir = ["assets", "tmp", "vendor", "testdata"]
