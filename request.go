@@ -6,6 +6,7 @@ type Request struct {
 	Proto   string            `json:"version"`
 	Headers map[string]string `json:"headers"`
 	Body    string            `json:"body"`
+	IP      string            `json:"ip"`
 }
 
 type RequestRepository interface {

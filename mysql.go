@@ -17,6 +17,7 @@ type RequestMySQLModel struct {
 	Proto   string         `gorm:"size:256"`
 	Headers datatypes.JSON `json:"headers"`
 	Body    string         `json:"body"`
+	IP      string         `gorm:"size:256"`
 }
 
 func (model *RequestMySQLModel) TableName() string {
@@ -49,6 +50,7 @@ func (repo *MySQLRequestRepository) Create(req *Request) error {
 		Proto:   req.Proto,
 		Headers: headers,
 		Body:    req.Body,
+		IP:      req.IP,
 	}
 	return repo.db.Create(&model).Error
 }

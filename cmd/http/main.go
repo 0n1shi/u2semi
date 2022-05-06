@@ -74,6 +74,7 @@ func runServer(c *cli.Context) error {
 		req.Method = r.Method
 		req.URL = r.RequestURI
 		req.Proto = r.Proto
+		req.IP = r.RemoteAddr
 
 		// http headers
 		req.Headers = make(map[string]string)
