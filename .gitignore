@@ -17,3 +17,5 @@
 data/mysql/**
 !.gitkeep
 config.yaml
+
+dist/

@@ -14,16 +14,18 @@ import (
 	"gopkg.in/yaml.v2"
 )
 
+var version = "unknown" // overwritten by goreleaser
+
 func main() {
 	(&cli.App{
 		Name:  "http honeypot",
 		Usage: "http server working as honeypot",
 		Commands: []*cli.Command{
 			{
-				Name:    "serve",
+				Name:    "server",
 				Aliases: []string{"s"},
 				Usage:   "start honeyport http server",
-				Action:  serve,
+				Action:  runServer,
 				Flags: []cli.Flag{
 					&cli.StringFlag{
 						Name:     "config",
@@ -33,11 +35,17 @@ func main() {
 					},
 				},
 			},
+			{
+				Name:    "version",
+				Aliases: []string{"v"},
+				Usage:   "show version",
+				Action:  showVersion,
+			},
 		},
 	}).Run(os.Args)
 }
 
-func serve(c *cli.Context) error {
+func runServer(c *cli.Context) error {
 	log.SetFlags(log.Llongfile | log.Ldate | log.Ltime)
 	log.SetPrefix("[http honeypot]")
 
@@ -97,5 +105,10 @@ func serve(c *cli.Context) error {
 	if err := http.ListenAndServe(":8080", nil); err != nil {
 		return errors.WithStack(err)
 	}
+	return nil
+}
+
+func showVersion(c *cli.Context) error {
+	fmt.Println(version)
 	return nil
 }
