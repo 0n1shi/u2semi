@@ -2,11 +2,9 @@ package main
 
 import (
 	"fmt"
-	"io/ioutil"
 	"log"
 	"net/http"
 	"os"
-	"strings"
 
 	hh "github.com/0n1shi/http-honeypot"
 	"github.com/pkg/errors"
@@ -60,50 +58,23 @@ func runServer(c *cli.Context) error {
 	}
 
 	log.Println("setting up database ...")
-	requestRepo, err := hh.NewMySQLRequestRepository(&conf.MySQL)
-	if err != nil {
-		return errors.WithStack(err)
+	var repo hh.RequestRepository
+	if conf.MySQL.Hostname != "" {
+		repo, err = hh.NewMySQLRequestRepository(&conf.MySQL)
+		if err != nil {
+			return errors.WithStack(err)
+		}
 	}
 
-	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		log.Println("received a http request")
-		req := hh.Request{}
+	rootController := hh.NewRootController(repo, &conf.Web)
 
-		// start line
-		fmt.Printf("%s %s %s\n", r.Method, r.RequestURI, r.Proto)
-		req.Method = r.Method
-		req.URL = r.RequestURI
-		req.Proto = r.Proto
-		req.IP = r.RemoteAddr
-
-		// http headers
-		req.Headers = make(map[string]string)
-		for k, v := range r.Header {
-			val := strings.Join(v, " ")
-			fmt.Printf("%s: %s\n", k, val)
-			req.Headers[k] = val
-		}
-
-		// request body
-		body, _ := ioutil.ReadAll(r.Body)
-		fmt.Printf("\n%s\n", string(body))
-		req.Body = string(body)
-
-		if err := requestRepo.Create(&req); err != nil {
-			log.Println(err)
-		}
-
-		for _, h := range conf.Web.Headers {
-			w.Header().Set(h.Key, h.Value)
-		}
-		w.WriteHeader(200)
-		w.Write([]byte(`{"hello": "world"}`)) // TODO
-	})
+	http.HandleFunc("/", rootController.HandlerAny)
 
 	log.Printf("starting server ... :%d\n", conf.Web.Port)
 	if err := http.ListenAndServe(fmt.Sprintf(":%d", conf.Web.Port), nil); err != nil {
 		return errors.WithStack(err)
 	}
+
 	return nil
 }
 
