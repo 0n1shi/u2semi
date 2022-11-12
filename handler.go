@@ -26,7 +26,12 @@ func (c *RootController) HandlerAny(w http.ResponseWriter, r *http.Request) {
 	req.Method = r.Method
 	req.URL = r.RequestURI
 	req.Proto = r.Proto
-	req.IP = r.RemoteAddr
+	req.IPFrom = r.RemoteAddr
+	req.IPTo = ""
+	localAddr, ok := r.Context().Value(http.LocalAddrContextKey).(string)
+	if ok {
+		req.IPTo = localAddr
+	}
 
 	// http headers
 	req.Headers = make(map[string]string)

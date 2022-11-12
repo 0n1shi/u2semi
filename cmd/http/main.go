@@ -7,6 +7,7 @@ import (
 	"os"
 
 	hh "github.com/0n1shi/http-honeypot"
+	"github.com/0n1shi/http-honeypot/repository/mysql"
 	"github.com/pkg/errors"
 	"github.com/urfave/cli/v2"
 	"gopkg.in/yaml.v2"
@@ -60,7 +61,7 @@ func runServer(c *cli.Context) error {
 	log.Println("setting up database ...")
 	var repo hh.RequestRepository
 	if conf.MySQL.Hostname != "" {
-		repo, err = hh.NewMySQLRequestRepository(&conf.MySQL)
+		repo, err = mysql.NewMySQLRequestRepository(&conf.MySQL)
 		if err != nil {
 			return errors.WithStack(err)
 		}

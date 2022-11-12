@@ -1,12 +1,13 @@
 package httphoneypot
 
 type Request struct {
-	Method  string            `json:"method"`
-	URL     string            `json:"url"`
-	Proto   string            `json:"version"`
-	Headers map[string]string `json:"headers"`
-	Body    string            `json:"body"`
-	IP      string            `json:"ip"`
+	Method  string
+	URL     string
+	Proto   string
+	Headers map[string]string
+	Body    string
+	IPFrom  string
+	IPTo    string
 }
 
 type RequestRepository interface {
