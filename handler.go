@@ -26,7 +26,7 @@ func (c *RootController) HandlerAny(w http.ResponseWriter, r *http.Request) {
 	req.Method = r.Method
 	req.URL = r.RequestURI
 	req.Proto = r.Proto
-	req.IPFrom = r.RemoteAddr
+	req.IPFrom = strings.Split(r.RemoteAddr, ":")[0]
 	req.IPTo = ""
 	localAddr, ok := r.Context().Value(http.LocalAddrContextKey).(string)
 	if ok {
