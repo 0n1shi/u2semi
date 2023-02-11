@@ -1,4 +1,4 @@
-module github.com/0n1shi/http-honeypot
+module github.com/0n1shi/u2semi
 
 go 1.17
 

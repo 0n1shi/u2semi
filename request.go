@@ -1,4 +1,4 @@
-package httphoneypot
+package u2semi
 
 type Request struct {
 	Method  string

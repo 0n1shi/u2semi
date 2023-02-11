@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 
-	httphoneypot "github.com/0n1shi/http-honeypot"
+	"github.com/0n1shi/u2semi"
 	"github.com/pkg/errors"
 	"gorm.io/datatypes"
 	_mysql "gorm.io/driver/mysql"
@@ -26,19 +26,19 @@ func (model *RequestMySQLModel) TableName() string {
 	return "http_requests"
 }
 
-var _ httphoneypot.RequestRepository = (*MySQLRequestRepository)(nil)
+var _ u2semi.RequestRepository = (*MySQLRequestRepository)(nil)
 
 type MySQLRequestRepository struct {
 	db *gorm.DB
 }
 
-func NewMySQLRequestRepository(conf *httphoneypot.MySQLConfig) (*MySQLRequestRepository, error) {
+func NewMySQLRequestRepository(conf *u2semi.MySQLRepoConf) (*MySQLRequestRepository, error) {
 	dsn := fmt.Sprintf("%s:%s@tcp(%s)/%s?charset=utf8mb4&parseTime=True&loc=Local", conf.Username, conf.Password, conf.Hostname, conf.DB)
 	db, err := gorm.Open(_mysql.Open(dsn), &gorm.Config{})
 	return &MySQLRequestRepository{db: db}, err
 }
 
-func (repo *MySQLRequestRepository) Create(req *httphoneypot.Request) error {
+func (repo *MySQLRequestRepository) Create(req *u2semi.Request) error {
 	headers, err := json.Marshal(req.Headers)
 	if err != nil {
 		return errors.WithStack(err)

@@ -1,4 +1,4 @@
-package httphoneypot
+package u2semi
 
 import (
 	"fmt"
@@ -10,10 +10,10 @@ import (
 
 type RootController struct {
 	repo RequestRepository
-	conf *WebConfig
+	conf *WebConf
 }
 
-func NewRootController(repo RequestRepository, conf *WebConfig) *RootController {
+func NewRootController(repo RequestRepository, conf *WebConf) *RootController {
 	return &RootController{repo: repo, conf: conf}
 }
 
