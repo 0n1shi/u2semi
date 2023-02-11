@@ -71,12 +71,13 @@ func runServer(c *cli.Context) error {
 			return errors.WithStack(err)
 		}
 	}
+	fs := http.FileSystem(http.Dir(conf.Content.Dir))
 
 	rootController := u2semi.NewRootController(repo, &conf.Web)
-	http.HandleFunc("/", rootController.HandlerAny)
+	http.HandleFunc("/hello", rootController.HandlerAny)
 
 	log.Printf("starting server ... :%d\n", conf.Web.Port)
-	if err := http.ListenAndServe(fmt.Sprintf(":%d", conf.Web.Port), nil); err != nil {
+	if err := http.ListenAndServe(fmt.Sprintf(":%d", conf.Web.Port), http.FileServer(fs)); err != nil {
 		return errors.WithStack(err)
 	}
 

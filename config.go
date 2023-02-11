@@ -1,8 +1,9 @@
 package u2semi
 
 type Conf struct {
-	Repo RepoConf `yaml:"repo"`
-	Web  WebConf  `yaml:"web"`
+	Content ContentConf `yaml:"content"`
+	Repo    RepoConf    `yaml:"repo"`
+	Web     WebConf     `yaml:"web"`
 }
 
 type RepoConf struct {
@@ -22,6 +23,10 @@ type MySQLRepoConf struct {
 	Password string `yaml:"password"`
 	Hostname string `yaml:"hostname"`
 	DB       string `yaml:"db"`
+}
+
+type ContentConf struct {
+	Dir string `yaml:"dir"`
 }
 
 type WebConf struct {

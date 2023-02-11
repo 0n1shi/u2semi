@@ -18,5 +18,5 @@ data/mysql/**
 !.gitkeep
 config.yaml
 tmp/
-
+bin/
 dist/
