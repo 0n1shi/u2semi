@@ -1,9 +1,8 @@
 package u2semi
 
 type Conf struct {
-	Content ContentConf `yaml:"content"`
-	Repo    RepoConf    `yaml:"repo"`
-	Web     WebConf     `yaml:"web"`
+	Repo RepoConf `yaml:"repo"`
+	Web  WebConf  `yaml:"web"`
 }
 
 type RepoConf struct {
@@ -25,13 +24,11 @@ type MySQLRepoConf struct {
 	DB       string `yaml:"db"`
 }
 
-type ContentConf struct {
-	Dir string `yaml:"dir"`
-}
-
 type WebConf struct {
-	Port    int       `yaml:"port"`
-	Headers []*Header `yaml:"headers"`
+	Port            int       `yaml:"port"`
+	Headers         []*Header `yaml:"headers"`
+	ContentDir      string    `yaml:"content_directory"`
+	DirListTemplate string    `yaml:"directory_listing_template"`
 }
 
 type Header struct {

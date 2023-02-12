@@ -1,3 +1,4 @@
+---
 repo:
   type: none
   mysql:
@@ -8,5 +9,7 @@ repo:
 web:
   port: 8080
   headers:
-  - key: Server
-    value: Apache/2.4.2 (Unix) PHP/4.2.2
+    - key: Server
+      value: Apache/2.4.2 (Unix) PHP/4.2.2
+  content_directory: ./content
+  directory_listing_template: ./template/directory_listing.html

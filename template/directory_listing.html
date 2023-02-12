@@ -1,0 +1,14 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
+<html>
+ <head>
+  <title>Index of {{ .Dir }}</title>
+ </head>
+ <body>
+<h1>Index of {{ .Dir }}</h1>
+<ul><li><a href="/"> Parent Directory</a></li>
+{{ range .Files }}
+<li><a href="{{ . }}">{{ . }}</a></li>
+{{ end }}
+</ul>
+</body></html>
+

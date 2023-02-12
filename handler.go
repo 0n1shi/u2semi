@@ -5,7 +5,9 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
+	"os"
 	"strings"
+	"text/template"
 )
 
 type RootController struct {
@@ -15,6 +17,11 @@ type RootController struct {
 
 func NewRootController(repo RequestRepository, conf *WebConf) *RootController {
 	return &RootController{repo: repo, conf: conf}
+}
+
+type DirListPageTemplate struct {
+	Dir   string
+	Files []string
 }
 
 func (c *RootController) HandlerAny(w http.ResponseWriter, r *http.Request) {
@@ -47,16 +54,50 @@ func (c *RootController) HandlerAny(w http.ResponseWriter, r *http.Request) {
 	req.Body = string(body)
 
 	// save request
-	if c.repo != nil {
-		if err := c.repo.Create(&req); err != nil {
-			log.Println(err)
-		}
+	if err := c.repo.Create(&req); err != nil {
+		log.Println(err)
 	}
 
 	// make response
 	for _, h := range c.conf.Headers {
 		w.Header().Set(h.Key, h.Value)
 	}
+
+	localContentDirPath := fmt.Sprintf("%s%s", c.conf.ContentDir, r.RequestURI)
+	log.Println(localContentDirPath)
+	if stat, err := os.Stat(localContentDirPath); !os.IsNotExist(err) {
+		// directory listing
+		if stat.IsDir() {
+			if !strings.HasSuffix(r.RequestURI, "/") {
+				w.Header().Set("Location", fmt.Sprintf("%s%s", r.URL, "/"))
+				w.WriteHeader(http.StatusMovedPermanently)
+				return
+			}
+			dirListPage := DirListPageTemplate{}
+			dirListPage.Dir = r.RequestURI[:len(r.RequestURI)-1]
+			files, _ := ioutil.ReadDir(localContentDirPath)
+			for _, file := range files {
+				dirListPage.Files = append(dirListPage.Files, file.Name())
+			}
+			log.Println(c.conf.DirListTemplate)
+			t, err := template.ParseFiles(c.conf.DirListTemplate)
+			if err != nil {
+				log.Fatalln(err)
+			}
+			if err := t.Execute(w, dirListPage); err != nil {
+				log.Fatalln(err)
+			}
+			return
+		}
+		// return file content
+		content, err := ioutil.ReadFile(localContentDirPath)
+		if err != nil {
+			log.Fatalln(err)
+		}
+		w.Write(content)
+		return
+	}
+
 	w.WriteHeader(http.StatusOK)
 	_, _ = w.Write([]byte(`{"message": "hello world"}`)) // TODO
 }

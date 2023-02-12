@@ -73,7 +73,7 @@ func runServer(c *cli.Context) error {
 	}
 
 	rootController := u2semi.NewRootController(repo, &conf.Web)
-	http.HandleFunc("/hello", rootController.HandlerAny)
+	http.HandleFunc("/", rootController.HandlerAny)
 
 	log.Printf("starting server ... :%d\n", conf.Web.Port)
 	if err := http.ListenAndServe(fmt.Sprintf(":%d", conf.Web.Port), nil); err != nil {
