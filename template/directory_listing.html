@@ -5,7 +5,7 @@
  </head>
  <body>
 <h1>Index of {{ .Dir }}</h1>
-<ul><li><a href="/"> Parent Directory</a></li>
+<ul><li><a href="{{ .ParentDir }}">Parent Directory</a></li>
 {{ range .Files }}
 <li><a href="{{ . }}">{{ . }}</a></li>
 {{ end }}

@@ -6,6 +6,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"path/filepath"
 	"strings"
 	"text/template"
 )
@@ -20,8 +21,9 @@ func NewRootController(repo RequestRepository, conf *WebConf) *RootController {
 }
 
 type DirListPageTemplate struct {
-	Dir   string
-	Files []string
+	ParentDir string
+	Dir       string
+	Files     []string
 }
 
 func (c *RootController) HandlerAny(w http.ResponseWriter, r *http.Request) {
@@ -58,46 +60,60 @@ func (c *RootController) HandlerAny(w http.ResponseWriter, r *http.Request) {
 		log.Println(err)
 	}
 
-	// make response
+	// make response header
 	for _, h := range c.conf.Headers {
 		w.Header().Set(h.Key, h.Value)
 	}
 
+	// from static content
 	localContentDirPath := fmt.Sprintf("%s%s", c.conf.ContentDir, r.RequestURI)
-	log.Println(localContentDirPath)
-	if stat, err := os.Stat(localContentDirPath); !os.IsNotExist(err) {
+	if stat, err := os.Stat(localContentDirPath); !os.IsNotExist(err) { // directory exists
 		// directory listing
 		if stat.IsDir() {
+			// redirect to a uri which ends with "/"
 			if !strings.HasSuffix(r.RequestURI, "/") {
 				w.Header().Set("Location", fmt.Sprintf("%s%s", r.URL, "/"))
 				w.WriteHeader(http.StatusMovedPermanently)
 				return
 			}
+
+			// list files
 			dirListPage := DirListPageTemplate{}
 			dirListPage.Dir = r.RequestURI[:len(r.RequestURI)-1]
-			files, _ := ioutil.ReadDir(localContentDirPath)
+			dirListPage.ParentDir = filepath.Dir(dirListPage.Dir)
+			files, err := ioutil.ReadDir(localContentDirPath)
+			if err != nil {
+				log.Println(err)
+				w.WriteHeader(http.StatusInternalServerError)
+				return
+			}
 			for _, file := range files {
 				dirListPage.Files = append(dirListPage.Files, file.Name())
 			}
-			log.Println(c.conf.DirListTemplate)
 			t, err := template.ParseFiles(c.conf.DirListTemplate)
 			if err != nil {
-				log.Fatalln(err)
+				log.Println(err)
+				w.WriteHeader(http.StatusInternalServerError)
+				return
 			}
 			if err := t.Execute(w, dirListPage); err != nil {
-				log.Fatalln(err)
+				log.Println(err)
+				w.WriteHeader(http.StatusInternalServerError)
+				return
 			}
+			w.WriteHeader(http.StatusOK)
 			return
 		}
+
 		// return file content
 		content, err := ioutil.ReadFile(localContentDirPath)
 		if err != nil {
 			log.Fatalln(err)
 		}
+		w.WriteHeader(http.StatusOK)
 		w.Write(content)
 		return
 	}
 
 	w.WriteHeader(http.StatusOK)
-	_, _ = w.Write([]byte(`{"message": "hello world"}`)) // TODO
 }
