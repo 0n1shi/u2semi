@@ -1,4 +1,4 @@
-# Http honeypot
+# U2semi
 
 A web server running as a honeypot handling any requests.
 
@@ -10,16 +10,15 @@ A web server running as a honeypot handling any requests.
 ## Usage
 
 ```bash
-$ http-hoenypot
 NAME:
-   http honeypot - http server working as honeypot
+   U2semi - A honeypot working as a HTTP server
 
 USAGE:
-   http honeypot [global options] command [command options] [arguments...]
+   U2semi [global options] command [command options] [arguments...]
 
 COMMANDS:
-   server, s   start honeyport http server
-   version, v  show version
+   server, s   Start HTTP server
+   version, v  Show version
    help, h     Shows a list of commands or help for one command
 
 GLOBAL OPTIONS:
@@ -36,4 +35,14 @@ web:
   headers:
     - key: Server
       value: Apache/2.4.2 (Unix) PHP/4.2.2
+```
+
+### Custom content
+
+```bash
+# create a directory
+mkdir db/
+
+# keep empty dir as content
+$ find ./content -type d -empty -exec touch {}/.gitkeep \;
 ```
