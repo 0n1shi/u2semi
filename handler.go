@@ -65,7 +65,7 @@ func (c *RootController) HandlerAny(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set(h.Key, h.Value)
 	}
 
-	// from static content
+	// content from file system
 	localContentDirPath := fmt.Sprintf("%s%s", c.conf.ContentDir, r.RequestURI)
 	if stat, err := os.Stat(localContentDirPath); !os.IsNotExist(err) { // directory exists
 		// directory listing
@@ -113,6 +113,12 @@ func (c *RootController) HandlerAny(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
 		w.Write(content)
 		return
+	}
+
+	// content from config file
+	if content, ok := c.conf.Contents[r.URL.Path]; ok {
+		w.WriteHeader(http.StatusOK)
+		w.Write([]byte(content.Body))
 	}
 
 	w.WriteHeader(http.StatusOK)

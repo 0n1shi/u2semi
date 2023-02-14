@@ -1,7 +1,7 @@
 ---
 repo:
   type: none
-  mysql:
+  mysql:  # type == mysql
     username: root
     password: password
     hostname: 127.0.0.1
@@ -13,3 +13,8 @@ web:
       value: Apache/2.4.2 (Unix) PHP/4.2.2
   content_directory: ./content
   directory_listing_template: ./template/directory_listing.html
+  contents:
+    /hello:
+      body: '{"message":"hello"}'
+    /ping:
+      body: '{"message":"pong"}'
