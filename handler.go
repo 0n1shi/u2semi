@@ -119,7 +119,9 @@ func (c *RootController) HandlerAny(w http.ResponseWriter, r *http.Request) {
 	if content, ok := c.conf.Contents[r.URL.Path]; ok {
 		w.WriteHeader(http.StatusOK)
 		w.Write([]byte(content.Body))
+		return
 	}
 
+	// content not found
 	w.WriteHeader(http.StatusOK)
 }
