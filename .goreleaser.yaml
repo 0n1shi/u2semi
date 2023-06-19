@@ -14,10 +14,6 @@ builds:
     goarch:
       - amd64
     main: ./cmd/http
-archives:
-  - replacements:
-      linux: Linux
-      amd64: x86_64
 checksum:
   name_template: 'checksums.txt'
 snapshot:
