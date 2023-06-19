@@ -114,14 +114,18 @@ func (c *RootController) HandlerAny(w http.ResponseWriter, r *http.Request) {
 			log.Fatalln(err)
 		}
 		w.WriteHeader(http.StatusOK)
-		w.Write(content)
+		if _, err = w.Write(content); err != nil {
+			log.Fatalln(err)
+		}
 		return
 	}
 
 	// content from config file
-	if content, ok := c.conf.Contents[r.URL.Path]; ok {
+	if content, ok := c.conf.Contents[r.URL.Path+"?"+r.URL.RawQuery]; ok {
 		w.WriteHeader(http.StatusOK)
-		w.Write([]byte(content.Body))
+		if _, err := w.Write([]byte(content.Body)); err != nil {
+			log.Fatalln(err)
+		}
 		return
 	}
 

@@ -1,17 +1,20 @@
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
 <html>
- <head>
-  <title>Index of {{ .Dir }}</title>
- </head>
- <body>
-<h1>Index of {{ .Dir }}</h1>
-<ul>
-{{- if ne .ParentDir "." }}
-  <li><a href="{{ .ParentDir }}">Parent Directory</a></li>
-{{- end }}
-{{- range .Files }}
-  <li><a href="{{ . }}">{{ . }}</a></li>
-{{- end }}
-</ul>
-</body></html>
 
+<head>
+  <title>Index of {{ .Dir }}</title>
+</head>
+
+<body>
+  <h1>Index of {{ .Dir }}</h1>
+  <ul>
+    {{- if ne .ParentDir "." }}
+    <li><a href="{{ .ParentDir }}">Parent Directory</a></li>
+    {{- end }}
+    {{- range .Files }}
+    <li><a href="{{ . }}">{{ . }}</a></li>
+    {{- end }}
+  </ul>
+</body>
+
+</html>
