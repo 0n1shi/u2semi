@@ -71,7 +71,7 @@ func (c *RootController) HandlerAny(w http.ResponseWriter, r *http.Request) {
 		// directory listing
 		if stat.IsDir() {
 			// redirect to a uri which ends with "/"
-			if !strings.HasSuffix(r.RequestURI, "/") {
+			if !strings.HasSuffix(r.URL.Path, "/") {
 				w.Header().Set("Location", fmt.Sprintf("%s%s", r.URL, "/"))
 				w.WriteHeader(http.StatusMovedPermanently)
 				return
@@ -79,7 +79,10 @@ func (c *RootController) HandlerAny(w http.ResponseWriter, r *http.Request) {
 
 			// list files
 			dirListPage := DirListPageTemplate{}
-			dirListPage.Dir = r.RequestURI[:len(r.RequestURI)-1]
+			dirListPage.Dir = r.URL.Path
+			if len(r.URL.Path) > 1 {
+				dirListPage.Dir = r.URL.Path[:len(r.URL.Path)-1]
+			}
 			dirListPage.ParentDir = filepath.Dir(dirListPage.Dir)
 			files, err := ioutil.ReadDir(localContentDirPath)
 			if err != nil {
@@ -111,15 +114,21 @@ func (c *RootController) HandlerAny(w http.ResponseWriter, r *http.Request) {
 			log.Fatalln(err)
 		}
 		w.WriteHeader(http.StatusOK)
-		w.Write(content)
+		if _, err = w.Write(content); err != nil {
+			log.Fatalln(err)
+		}
 		return
 	}
 
 	// content from config file
-	if content, ok := c.conf.Contents[r.URL.Path]; ok {
+	if content, ok := c.conf.Contents[r.URL.Path+"?"+r.URL.RawQuery]; ok {
 		w.WriteHeader(http.StatusOK)
-		w.Write([]byte(content.Body))
+		if _, err := w.Write([]byte(content.Body)); err != nil {
+			log.Fatalln(err)
+		}
+		return
 	}
 
+	// content not found
 	w.WriteHeader(http.StatusOK)
 }

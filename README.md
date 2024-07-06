@@ -2,11 +2,6 @@
 
 A web server running as a honeypot handling any requests.
 
-## Tech
-
-- Go
-- Gorm
-
 ## Usage
 
 ```bash
@@ -25,24 +20,36 @@ GLOBAL OPTIONS:
    --help, -h  show help (default: false)
 ```
 
+## Configuration
+
 ### Custom header
 
-You can add items on the header like below.
+You can add some items on response header like below.
 
 ```yaml
 web:
-  port: 80
-  headers:
-    - key: Server
-      value: Apache/2.4.2 (Unix) PHP/4.2.2
+   headers:
+      - key: Server
+        value: Apache/2.4.2 (Unix) PHP/4.2.2
 ```
 
-### Custom content
+### Custom content (json)
 
-```bash
-# create a directory
-mkdir db/
+```yaml
+web:
+   contents:
+      /greet:
+         body: 'Hello world'
+      /ping:
+         body: '{"message":"pong"}'
+```
 
-# keep empty dir as content
-$ find ./content -type d -empty -exec touch {}/.gitkeep \;
+### Custom content (directory)
+
+This setting is given priority over json above.
+
+```yaml
+web:
+   content_directory: ./content/ # directory path which has files to return as response
+   directory_listing_template: ./template/directory_listing.html # html template for directory listing
 ```
