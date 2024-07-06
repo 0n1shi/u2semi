@@ -1,5 +1,11 @@
 package u2semi
 
+import (
+	"os"
+
+	"gopkg.in/yaml.v2"
+)
+
 type Conf struct {
 	Repo RepoConf `yaml:"repo"`
 	Web  WebConf  `yaml:"web"`
@@ -24,4 +30,16 @@ type Header struct {
 
 type WebContent struct {
 	Body string `yaml:"body"`
+}
+
+func LoadConf(path string) (*Conf, error) {
+	var conf Conf
+	content, err := os.ReadFile(path)
+	if err != nil {
+		return nil, err
+	}
+	if err := yaml.Unmarshal(content, &conf); err != nil {
+		return nil, err
+	}
+	return &conf, nil
 }

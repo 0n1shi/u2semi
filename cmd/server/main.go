@@ -2,21 +2,19 @@ package main
 
 import (
 	"fmt"
-	"log"
+	"log/slog"
 	"net/http"
 	"os"
 
 	"github.com/0n1shi/u2semi"
-	"github.com/0n1shi/u2semi/repository/mysql"
-	"github.com/0n1shi/u2semi/repository/none"
-	"github.com/pkg/errors"
+	"github.com/0n1shi/u2semi/repository"
 	"github.com/urfave/cli/v2"
-	"gopkg.in/yaml.v2"
 )
 
 var version = "unknown" // overwritten by goreleaser
 
 func main() {
+	slog.SetDefault(slog.New(slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{AddSource: true})))
 	app := &cli.App{
 		Name:  "U2semi",
 		Usage: "A honeypot working as a HTTP server ",
@@ -44,43 +42,29 @@ func main() {
 		},
 	}
 	if err := app.Run(os.Args); err != nil {
-		log.Fatalf("%+v\n", err)
+		slog.Error("failed to run app", "message", err.Error())
+		os.Exit(1)
 	}
 }
 
 func runServer(c *cli.Context) error {
-	log.SetFlags(log.Llongfile | log.Ldate | log.Ltime)
-	log.SetPrefix("[http honeypot]")
-
-	log.Println("loading config ...")
-	var conf u2semi.Conf
-	content, err := os.ReadFile(c.String("config"))
+	slog.Info("Loading config file", "path", c.String("config"))
+	conf, err := u2semi.LoadConf(c.String("config"))
 	if err != nil {
-		return errors.WithStack(err)
-	}
-	if err := yaml.Unmarshal(content, &conf); err != nil {
-		return errors.WithStack(err)
+		return err
 	}
 
-	log.Println("setting up repository ...")
-
-	var repo u2semi.RequestRepository
-	switch conf.Repo.Type {
-	case u2semi.RepoTypeNone:
-		repo = none.NewNoneRepository()
-	case u2semi.RepoTypeMySQL:
-		repo, err = mysql.NewMySQLRequestRepository(&conf.Repo.MySQL)
-		if err != nil {
-			return errors.WithStack(err)
-		}
+	repo, err := repository.NewRequestRepository(conf.Repo.DSN)
+	if err != nil {
+		return err
 	}
 
 	rootController := u2semi.NewRootController(repo, &conf.Web)
 	http.HandleFunc("/", rootController.HandlerAny)
 
-	log.Printf("starting server ... :%d\n", conf.Web.Port)
+	slog.Info("starting server ...", "port", conf.Web.Port)
 	if err := http.ListenAndServe(fmt.Sprintf(":%d", conf.Web.Port), nil); err != nil {
-		return errors.WithStack(err)
+		return err
 	}
 	return nil
 }

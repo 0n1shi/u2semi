@@ -3,7 +3,7 @@ package u2semi
 import (
 	"fmt"
 	"io/ioutil"
-	"log"
+	"log/slog"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -27,7 +27,7 @@ type DirListPageTemplate struct {
 }
 
 func (c *RootController) HandlerAny(w http.ResponseWriter, r *http.Request) {
-	log.Println("received a http request")
+	slog.Info("received a http request")
 	req := Request{}
 
 	// start line
@@ -57,7 +57,7 @@ func (c *RootController) HandlerAny(w http.ResponseWriter, r *http.Request) {
 
 	// save request
 	if err := c.repo.Save(&req); err != nil {
-		log.Println(err)
+		slog.Error("failed to save request", "message", err.Error())
 	}
 
 	// make response header
@@ -86,7 +86,7 @@ func (c *RootController) HandlerAny(w http.ResponseWriter, r *http.Request) {
 			dirListPage.ParentDir = filepath.Dir(dirListPage.Dir)
 			files, err := ioutil.ReadDir(localContentDirPath)
 			if err != nil {
-				log.Println(err)
+				slog.Error("failed to read directory", "message", err.Error())
 				w.WriteHeader(http.StatusInternalServerError)
 				return
 			}
@@ -95,12 +95,12 @@ func (c *RootController) HandlerAny(w http.ResponseWriter, r *http.Request) {
 			}
 			t, err := template.ParseFiles(c.conf.DirListTemplate)
 			if err != nil {
-				log.Println(err)
+				slog.Error("failed to parse template", "message", err.Error())
 				w.WriteHeader(http.StatusInternalServerError)
 				return
 			}
 			if err := t.Execute(w, dirListPage); err != nil {
-				log.Println(err)
+				slog.Error("failed to execute template", "message", err.Error())
 				w.WriteHeader(http.StatusInternalServerError)
 				return
 			}
@@ -111,11 +111,13 @@ func (c *RootController) HandlerAny(w http.ResponseWriter, r *http.Request) {
 		// return file content
 		content, err := ioutil.ReadFile(localContentDirPath)
 		if err != nil {
-			log.Fatalln(err)
+			slog.Error("failed to read file", "message", err.Error())
+			os.Exit(1)
 		}
 		w.WriteHeader(http.StatusOK)
 		if _, err = w.Write(content); err != nil {
-			log.Fatalln(err)
+			slog.Error("failed to write response", "message", err.Error())
+			os.Exit(1)
 		}
 		return
 	}
@@ -124,7 +126,8 @@ func (c *RootController) HandlerAny(w http.ResponseWriter, r *http.Request) {
 	if content, ok := c.conf.Contents[r.URL.Path+"?"+r.URL.RawQuery]; ok {
 		w.WriteHeader(http.StatusOK)
 		if _, err := w.Write([]byte(content.Body)); err != nil {
-			log.Fatalln(err)
+			slog.Error("failed to write response", "message", err.Error())
+			os.Exit(1)
 		}
 		return
 	}
