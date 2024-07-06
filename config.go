@@ -6,22 +6,7 @@ type Conf struct {
 }
 
 type RepoConf struct {
-	Type  RepoType      `yaml:"type"`
-	MySQL MySQLRepoConf `yaml:"mysql"`
-}
-
-type RepoType string
-
-const (
-	RepoTypeNone  RepoType = "none"
-	RepoTypeMySQL RepoType = "mysql"
-)
-
-type MySQLRepoConf struct {
-	Username string `yaml:"username"`
-	Password string `yaml:"password"`
-	Hostname string `yaml:"hostname"`
-	DB       string `yaml:"db"`
+	DSN string `yaml:"dsn"`
 }
 
 type WebConf struct {

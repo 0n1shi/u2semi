@@ -17,7 +17,7 @@ import (
 var version = "unknown" // overwritten by goreleaser
 
 func main() {
-	(&cli.App{
+	app := &cli.App{
 		Name:  "U2semi",
 		Usage: "A honeypot working as a HTTP server ",
 		Commands: []*cli.Command{
@@ -42,7 +42,10 @@ func main() {
 				Action:  showVersion,
 			},
 		},
-	}).Run(os.Args)
+	}
+	if err := app.Run(os.Args); err != nil {
+		log.Fatalf("%+v\n", err)
+	}
 }
 
 func runServer(c *cli.Context) error {

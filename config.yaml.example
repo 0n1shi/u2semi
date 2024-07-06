@@ -1,11 +1,6 @@
 ---
 repo:
-  type: none
-  mysql:  # type == mysql
-    username: root
-    password: password
-    hostname: 127.0.0.1
-    db: honeypot
+  dsn: host=localhost user=postgres password=postgres dbname=postgres port=5432 sslmode=disable TimeZone=Asia/Tokyo
 web:
   port: 8080
   headers:

@@ -2,19 +2,24 @@ package none
 
 import (
 	"github.com/0n1shi/u2semi"
-	"gorm.io/gorm"
+	"log/slog"
 )
 
 var _ u2semi.RequestRepository = (*NoneRepository)(nil)
-
-type NoneRepository struct {
-	db *gorm.DB
-}
 
 func NewNoneRepository() *NoneRepository {
 	return &NoneRepository{}
 }
 
-func (repo *NoneRepository) Create(req *u2semi.Request) error {
+type NoneRepository struct {
+}
+
+func (repo *NoneRepository) Save(req *u2semi.Request) error {
+	slog.Info("Request saved (none repo)", "request", req)
+	return nil
+}
+
+func (repo *NoneRepository) Migrate() error {
+	slog.Info("Request repository migrated (none repo)")
 	return nil
 }

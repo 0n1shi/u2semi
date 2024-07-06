@@ -9,7 +9,3 @@ type Request struct {
 	IPFrom  string
 	IPTo    string
 }
-
-type RequestRepository interface {
-	Create(req *Request) error
-}

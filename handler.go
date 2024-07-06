@@ -56,7 +56,7 @@ func (c *RootController) HandlerAny(w http.ResponseWriter, r *http.Request) {
 	req.Body = string(body)
 
 	// save request
-	if err := c.repo.Create(&req); err != nil {
+	if err := c.repo.Save(&req); err != nil {
 		log.Println(err)
 	}
 
