@@ -13,6 +13,7 @@ import (
 	"path/filepath"
 	"strings"
 	"text/template"
+	"time"
 )
 
 // maxBodySize は保存するリクエストボディの最大バイト数（超過分は切り捨てる）
@@ -35,7 +36,7 @@ type DirListPageTemplate struct {
 
 func (c *RootController) HandlerAny(w http.ResponseWriter, r *http.Request) {
 	slog.Info("received a http request")
-	req := Request{}
+	req := Request{ReceivedAt: time.Now()}
 
 	// start line
 	fmt.Printf("%s %s %s\n", r.Method, r.RequestURI, r.Proto)

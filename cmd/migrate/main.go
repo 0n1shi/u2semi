@@ -28,7 +28,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	reqRepo, err := repository.NewRequestRepository(conf.Repo.DSN)
+	reqRepo, err := repository.NewRequestRepository(&conf.Repo)
 	if err != nil {
 		slog.Error("failed to create request repository", "message", err.Error())
 		os.Exit(1)

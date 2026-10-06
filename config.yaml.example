@@ -1,5 +1,6 @@
 ---
 repo:
+  # file: ./log/requests.jsonl # リクエストを JSON Lines 形式でファイルに保存する
   dsn: host=localhost user=postgres password=postgres dbname=postgres port=5432 sslmode=disable TimeZone=Asia/Tokyo
 web:
   port: 8080

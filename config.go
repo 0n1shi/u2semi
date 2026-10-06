@@ -12,7 +12,8 @@ type Conf struct {
 }
 
 type RepoConf struct {
-	DSN string `yaml:"dsn"`
+	DSN  string `yaml:"dsn"`
+	File string `yaml:"file"` // リクエストを JSON Lines 形式で追記するファイルのパス
 }
 
 type WebConf struct {

@@ -54,7 +54,7 @@ func runServer(c *cli.Context) error {
 		return err
 	}
 
-	repo, err := repository.NewRequestRepository(conf.Repo.DSN)
+	repo, err := repository.NewRequestRepository(&conf.Repo)
 	if err != nil {
 		return err
 	}
