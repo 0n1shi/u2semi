@@ -7,6 +7,7 @@ import (
 	"log/slog"
 	"net"
 	"net/http"
+	"net/url"
 	"os"
 	"path"
 	"path/filepath"
@@ -136,7 +137,7 @@ func (c *RootController) HandlerAny(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// content from config file
-	if content, ok := c.conf.Contents[r.URL.Path+"?"+r.URL.RawQuery]; ok {
+	if content, ok := c.findContent(r.URL); ok {
 		w.WriteHeader(http.StatusOK)
 		if _, err := w.Write([]byte(content.Body)); err != nil {
 			slog.Error("failed to write response", "message", err.Error())
@@ -157,6 +158,18 @@ func (c *RootController) localPath(urlPath string) (string, bool) {
 	}
 	cleaned := path.Clean("/" + urlPath)
 	return filepath.Join(c.conf.ContentDir, filepath.FromSlash(cleaned)), true
+}
+
+// findContent は設定ファイルの contents からレスポンスを探す。
+// クエリ付きのキー（例: "/search?q=x"）を優先し、なければパスのみのキーで探す。
+func (c *RootController) findContent(u *url.URL) (*WebContent, bool) {
+	if u.RawQuery != "" {
+		if content, ok := c.conf.Contents[u.Path+"?"+u.RawQuery]; ok {
+			return content, true
+		}
+	}
+	content, ok := c.conf.Contents[u.Path]
+	return content, ok
 }
 
 // hostOf は "host:port" 形式のアドレスからホスト部分を取り出す（IPv6 にも対応）

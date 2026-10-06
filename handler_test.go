@@ -206,3 +206,23 @@ func TestHandlerAny_TemplateErrorReturns500(t *testing.T) {
 		t.Errorf("status = %d, want 500", status)
 	}
 }
+
+func TestHandlerAny_ConfigContents(t *testing.T) {
+	srv, _ := newTestServer(t, &WebConf{Contents: map[string]*WebContent{
+		"/ping":       {Body: "pong"},
+		"/search?q=a": {Body: "result a"},
+	}})
+
+	tests := map[string]string{
+		"/ping":       "pong",
+		"/ping?x=1":   "pong",
+		"/search?q=a": "result a",
+		"/search?q=b": "",
+		"/unknown":    "",
+	}
+	for path, want := range tests {
+		if _, _, body := get(t, srv, path); body != want {
+			t.Errorf("GET %s body = %q, want %q", path, body, want)
+		}
+	}
+}
