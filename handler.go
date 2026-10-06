@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"log/slog"
+	"net"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -35,11 +36,10 @@ func (c *RootController) HandlerAny(w http.ResponseWriter, r *http.Request) {
 	req.Method = r.Method
 	req.URL = r.RequestURI
 	req.Proto = r.Proto
-	req.IPFrom = strings.Split(r.RemoteAddr, ":")[0]
+	req.IPFrom = hostOf(r.RemoteAddr)
 	req.IPTo = ""
-	localAddr, ok := r.Context().Value(http.LocalAddrContextKey).(string)
-	if ok {
-		req.IPTo = localAddr
+	if localAddr, ok := r.Context().Value(http.LocalAddrContextKey).(net.Addr); ok {
+		req.IPTo = hostOf(localAddr.String())
 	}
 
 	// http headers
@@ -134,4 +134,13 @@ func (c *RootController) HandlerAny(w http.ResponseWriter, r *http.Request) {
 
 	// content not found
 	w.WriteHeader(http.StatusOK)
+}
+
+// hostOf は "host:port" 形式のアドレスからホスト部分を取り出す（IPv6 にも対応）
+func hostOf(addr string) string {
+	host, _, err := net.SplitHostPort(addr)
+	if err != nil {
+		return addr
+	}
+	return host
 }
