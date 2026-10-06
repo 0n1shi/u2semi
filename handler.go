@@ -8,6 +8,7 @@ import (
 	"net"
 	"net/http"
 	"os"
+	"path"
 	"path/filepath"
 	"strings"
 	"text/template"
@@ -70,13 +71,16 @@ func (c *RootController) HandlerAny(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// content from file system
-	localContentDirPath := fmt.Sprintf("%s%s", c.conf.ContentDir, r.RequestURI)
-	if stat, err := os.Stat(localContentDirPath); !os.IsNotExist(err) { // directory exists
+	localContentDirPath, ok := c.localPath(r.URL.Path)
+	if stat, err := os.Stat(localContentDirPath); ok && !os.IsNotExist(err) { // directory exists
 		// directory listing
 		if stat.IsDir() {
 			// redirect to a uri which ends with "/"
 			if !strings.HasSuffix(r.URL.Path, "/") {
-				w.Header().Set("Location", fmt.Sprintf("%s%s", r.URL, "/"))
+				u := *r.URL
+				u.Path += "/"
+				u.RawPath = ""
+				w.Header().Set("Location", u.String())
 				w.WriteHeader(http.StatusMovedPermanently)
 				return
 			}
@@ -138,6 +142,17 @@ func (c *RootController) HandlerAny(w http.ResponseWriter, r *http.Request) {
 
 	// content not found
 	w.WriteHeader(http.StatusOK)
+}
+
+// localPath は URL のパスをコンテンツディレクトリ配下のローカルパスに変換する。
+// コンテンツディレクトリが未設定の場合は false を返す。
+// パスは正規化されるため、".." でコンテンツディレクトリの外に出ることはできない。
+func (c *RootController) localPath(urlPath string) (string, bool) {
+	if c.conf.ContentDir == "" {
+		return "", false
+	}
+	cleaned := path.Clean("/" + urlPath)
+	return filepath.Join(c.conf.ContentDir, filepath.FromSlash(cleaned)), true
 }
 
 // hostOf は "host:port" 形式のアドレスからホスト部分を取り出す（IPv6 にも対応）

@@ -1,8 +1,11 @@
 package u2semi
 
 import (
+	"io"
 	"net/http"
 	"net/http/httptest"
+	"os"
+	"path/filepath"
 	"strings"
 	"sync"
 	"testing"
@@ -84,5 +87,82 @@ func TestHandlerAny_BodyIsTruncated(t *testing.T) {
 
 	if got := len(repo.last(t).Body); got != maxBodySize {
 		t.Errorf("len(Body) = %d, want %d", got, maxBodySize)
+	}
+}
+
+// get は生のリクエストパスで GET し、ステータス・Location・ボディを返す
+func get(t *testing.T, srv *httptest.Server, rawPath string) (int, string, string) {
+	t.Helper()
+	req, err := http.NewRequest(http.MethodGet, srv.URL, nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	req.URL.Opaque = rawPath // エンコードを変えずにそのまま送る
+	client := &http.Client{CheckRedirect: func(*http.Request, []*http.Request) error {
+		return http.ErrUseLastResponse
+	}}
+	resp, err := client.Do(req)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer resp.Body.Close()
+	b, _ := io.ReadAll(resp.Body)
+	return resp.StatusCode, resp.Header.Get("Location"), string(b)
+}
+
+func newContentDir(t *testing.T) string {
+	t.Helper()
+	root := t.TempDir()
+	dir := filepath.Join(root, "content")
+	if err := os.MkdirAll(filepath.Join(dir, "sub"), 0o755); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(filepath.Join(dir, "sub", "a.txt"), []byte("A"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	// コンテンツディレクトリの外にあるファイル（配信されてはいけない）
+	if err := os.WriteFile(filepath.Join(root, "secret.txt"), []byte("SECRET"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	return dir
+}
+
+func TestHandlerAny_ContentFile(t *testing.T) {
+	srv, _ := newTestServer(t, &WebConf{
+		ContentDir:      newContentDir(t),
+		DirListTemplate: "template/directory_listing.html",
+	})
+
+	tests := []struct {
+		path     string
+		status   int
+		location string
+		body     string
+	}{
+		{path: "/sub/a.txt", status: 200, body: "A"},
+		{path: "/sub/a.txt?x=1", status: 200, body: "A"},
+		{path: "/sub?x=1", status: 301, location: "/sub/?x=1"},
+		{path: "/%2e%2e/secret.txt", status: 200, body: ""},
+		{path: "/sub/..%2f..%2fsecret.txt", status: 200, body: ""},
+	}
+	for _, tt := range tests {
+		status, location, body := get(t, srv, tt.path)
+		if status != tt.status || location != tt.location || body != tt.body {
+			t.Errorf("GET %s = (%d, %q, %q), want (%d, %q, %q)",
+				tt.path, status, location, body, tt.status, tt.location, tt.body)
+		}
+	}
+}
+
+func TestHandlerAny_NoContentDirDoesNotServeFilesystem(t *testing.T) {
+	srv, _ := newTestServer(t, &WebConf{})
+
+	wd, err := os.Getwd()
+	if err != nil {
+		t.Fatal(err)
+	}
+	_, _, body := get(t, srv, filepath.ToSlash(filepath.Join(wd, "go.mod")))
+	if body != "" {
+		t.Errorf("served a local file without content_directory: %q", body)
 	}
 }
