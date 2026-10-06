@@ -166,3 +166,43 @@ func TestHandlerAny_NoContentDirDoesNotServeFilesystem(t *testing.T) {
 		t.Errorf("served a local file without content_directory: %q", body)
 	}
 }
+
+func TestHandlerAny_DirectoryListing(t *testing.T) {
+	srv, _ := newTestServer(t, &WebConf{
+		ContentDir:      newContentDir(t),
+		DirListTemplate: "template/directory_listing.html",
+	})
+
+	status, _, body := get(t, srv, "/sub/")
+	if status != http.StatusOK || !strings.Contains(body, "a.txt") {
+		t.Errorf("GET /sub/ = (%d, %q), want 200 with a.txt listed", status, body)
+	}
+}
+
+func TestHandlerAny_UnreadableFileReturns500(t *testing.T) {
+	if os.Geteuid() == 0 {
+		t.Skip("root ignores file permissions")
+	}
+	dir := newContentDir(t)
+	if err := os.WriteFile(filepath.Join(dir, "locked.txt"), []byte("x"), 0o000); err != nil {
+		t.Fatal(err)
+	}
+	srv, _ := newTestServer(t, &WebConf{ContentDir: dir})
+
+	// 以前は os.Exit(1) でテストプロセスごと終了していた
+	if status, _, _ := get(t, srv, "/locked.txt"); status != http.StatusInternalServerError {
+		t.Errorf("status = %d, want 500", status)
+	}
+}
+
+func TestHandlerAny_TemplateErrorReturns500(t *testing.T) {
+	tmpl := filepath.Join(t.TempDir(), "broken.html")
+	if err := os.WriteFile(tmpl, []byte("{{ .NoSuchField }}"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	srv, _ := newTestServer(t, &WebConf{ContentDir: newContentDir(t), DirListTemplate: tmpl})
+
+	if status, _, _ := get(t, srv, "/sub/"); status != http.StatusInternalServerError {
+		t.Errorf("status = %d, want 500", status)
+	}
+}

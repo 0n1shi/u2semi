@@ -1,9 +1,9 @@
 package u2semi
 
 import (
+	"bytes"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"log/slog"
 	"net"
 	"net/http"
@@ -72,7 +72,7 @@ func (c *RootController) HandlerAny(w http.ResponseWriter, r *http.Request) {
 
 	// content from file system
 	localContentDirPath, ok := c.localPath(r.URL.Path)
-	if stat, err := os.Stat(localContentDirPath); ok && !os.IsNotExist(err) { // directory exists
+	if stat, err := os.Stat(localContentDirPath); ok && err == nil { // file or directory exists
 		// directory listing
 		if stat.IsDir() {
 			// redirect to a uri which ends with "/"
@@ -92,7 +92,7 @@ func (c *RootController) HandlerAny(w http.ResponseWriter, r *http.Request) {
 				dirListPage.Dir = r.URL.Path[:len(r.URL.Path)-1]
 			}
 			dirListPage.ParentDir = filepath.Dir(dirListPage.Dir)
-			files, err := ioutil.ReadDir(localContentDirPath)
+			files, err := os.ReadDir(localContentDirPath)
 			if err != nil {
 				slog.Error("failed to read directory", "message", err.Error())
 				w.WriteHeader(http.StatusInternalServerError)
@@ -107,25 +107,30 @@ func (c *RootController) HandlerAny(w http.ResponseWriter, r *http.Request) {
 				w.WriteHeader(http.StatusInternalServerError)
 				return
 			}
-			if err := t.Execute(w, dirListPage); err != nil {
+			// 途中まで書き出した後にエラーになるのを避けるため、一旦バッファに描画する
+			var buf bytes.Buffer
+			if err := t.Execute(&buf, dirListPage); err != nil {
 				slog.Error("failed to execute template", "message", err.Error())
 				w.WriteHeader(http.StatusInternalServerError)
 				return
 			}
 			w.WriteHeader(http.StatusOK)
+			if _, err := buf.WriteTo(w); err != nil {
+				slog.Error("failed to write response", "message", err.Error())
+			}
 			return
 		}
 
 		// return file content
-		content, err := ioutil.ReadFile(localContentDirPath)
+		content, err := os.ReadFile(localContentDirPath)
 		if err != nil {
 			slog.Error("failed to read file", "message", err.Error())
-			os.Exit(1)
+			w.WriteHeader(http.StatusInternalServerError)
+			return
 		}
 		w.WriteHeader(http.StatusOK)
 		if _, err = w.Write(content); err != nil {
 			slog.Error("failed to write response", "message", err.Error())
-			os.Exit(1)
 		}
 		return
 	}
@@ -135,7 +140,6 @@ func (c *RootController) HandlerAny(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
 		if _, err := w.Write([]byte(content.Body)); err != nil {
 			slog.Error("failed to write response", "message", err.Error())
-			os.Exit(1)
 		}
 		return
 	}
