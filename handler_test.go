@@ -3,6 +3,7 @@ package u2semi
 import (
 	"net/http"
 	"net/http/httptest"
+	"strings"
 	"sync"
 	"testing"
 )
@@ -68,5 +69,20 @@ func TestHostOf(t *testing.T) {
 		if got := hostOf(in); got != want {
 			t.Errorf("hostOf(%q) = %q, want %q", in, got, want)
 		}
+	}
+}
+
+func TestHandlerAny_BodyIsTruncated(t *testing.T) {
+	srv, repo := newTestServer(t, &WebConf{})
+
+	body := strings.Repeat("a", maxBodySize+100)
+	resp, err := http.Post(srv.URL+"/", "text/plain", strings.NewReader(body))
+	if err != nil {
+		t.Fatal(err)
+	}
+	resp.Body.Close()
+
+	if got := len(repo.last(t).Body); got != maxBodySize {
+		t.Errorf("len(Body) = %d, want %d", got, maxBodySize)
 	}
 }

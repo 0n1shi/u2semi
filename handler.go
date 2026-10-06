@@ -2,6 +2,7 @@ package u2semi
 
 import (
 	"fmt"
+	"io"
 	"io/ioutil"
 	"log/slog"
 	"net"
@@ -11,6 +12,9 @@ import (
 	"strings"
 	"text/template"
 )
+
+// maxBodySize は保存するリクエストボディの最大バイト数（超過分は切り捨てる）
+const maxBodySize = 10 << 20 // 10 MiB
 
 type RootController struct {
 	repo RequestRepository
@@ -51,7 +55,7 @@ func (c *RootController) HandlerAny(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// request body
-	body, _ := ioutil.ReadAll(r.Body)
+	body, _ := io.ReadAll(io.LimitReader(r.Body, maxBodySize))
 	fmt.Printf("\n%s\n", string(body))
 	req.Body = string(body)
 
