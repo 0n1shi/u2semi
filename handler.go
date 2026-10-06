@@ -51,6 +51,11 @@ func (c *RootController) HandlerAny(w http.ResponseWriter, r *http.Request) {
 
 	// http headers
 	req.Headers = make(map[string]string)
+	// Host ヘッダは net/http が r.Header から取り除いて r.Host に移すため、明示的に記録する
+	if r.Host != "" {
+		fmt.Printf("Host: %s\n", r.Host)
+		req.Headers["Host"] = r.Host
+	}
 	for k, v := range r.Header {
 		val := strings.Join(v, " ")
 		fmt.Printf("%s: %s\n", k, val)

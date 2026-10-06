@@ -226,3 +226,22 @@ func TestHandlerAny_ConfigContents(t *testing.T) {
 		}
 	}
 }
+
+func TestHandlerAny_RecordsHostHeader(t *testing.T) {
+	srv, repo := newTestServer(t, &WebConf{})
+
+	req, err := http.NewRequest(http.MethodGet, srv.URL+"/", nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	req.Host = "target.example.com"
+	resp, err := http.DefaultClient.Do(req)
+	if err != nil {
+		t.Fatal(err)
+	}
+	resp.Body.Close()
+
+	if got := repo.last(t).Headers["Host"]; got != "target.example.com" {
+		t.Errorf("Headers[Host] = %q, want target.example.com", got)
+	}
+}
